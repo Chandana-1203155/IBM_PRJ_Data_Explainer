@@ -58,17 +58,27 @@ const Dashboard = {
 
             // Temporarily show charts section so canvases render at full size
             let wasHidden = false;
+            const previousStyles = {};
             if (chartsSection && !chartsSection.classList.contains('active')) {
                 wasHidden = true;
+                // Keep charts rendered but offscreen and invisible to user — avoid visibility:hidden which can prevent rendering
+                previousStyles.display = chartsSection.style.display;
+                previousStyles.position = chartsSection.style.position;
+                previousStyles.left = chartsSection.style.left;
+                previousStyles.opacity = chartsSection.style.opacity;
+                previousStyles.pointerEvents = chartsSection.style.pointerEvents;
+
                 chartsSection.style.display = 'block';
                 chartsSection.style.position = 'absolute';
                 chartsSection.style.left = '-9999px';
-                chartsSection.style.visibility = 'hidden';
+                chartsSection.style.opacity = '0';
+                chartsSection.style.pointerEvents = 'none';
             }
 
             ChartService.refreshAllCharts();
 
             window.requestAnimationFrame(() => {
+                // Give charts more time to render on slower mobile devices
                 window.setTimeout(() => {
                     canvases.forEach(canvas => {
                         try {
@@ -110,12 +120,13 @@ const Dashboard = {
                         }
                     });
 
-                    // Restore charts section visibility
+                    // Restore charts section styles
                     if (wasHidden && chartsSection) {
-                        chartsSection.style.display = '';
-                        chartsSection.style.position = '';
-                        chartsSection.style.left = '';
-                        chartsSection.style.visibility = '';
+                        chartsSection.style.display = previousStyles.display || '';
+                        chartsSection.style.position = previousStyles.position || '';
+                        chartsSection.style.left = previousStyles.left || '';
+                        chartsSection.style.opacity = previousStyles.opacity || '';
+                        chartsSection.style.pointerEvents = previousStyles.pointerEvents || '';
                     }
 
                     resolve(chartImages);
