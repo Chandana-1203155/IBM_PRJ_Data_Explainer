@@ -23,25 +23,54 @@ const Sidebar = {
 
     setupMobileToggle() {
         const menuToggle = document.querySelector('.menu-toggle');
+        const navToggle = document.querySelector('.nav-toggle');
         const sidebar = document.querySelector('.sidebar');
         const sidebarToggle = document.querySelector('.sidebar-toggle');
 
+        // Debug: log elements so we can verify they exist and listeners attach
+        try {
+            console.debug('Sidebar.setupMobileToggle: menuToggle=', menuToggle, 'sidebar=', sidebar, 'sidebarToggle=', sidebarToggle);
+        } catch (e) {
+            // ignore console issues in older browsers
+        }
+
         if (menuToggle && sidebar) {
-            menuToggle.addEventListener('click', () => {
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.debug('menuToggle clicked - toggling sidebar.open');
                 sidebar.classList.toggle('open');
             });
+            console.debug('Attached click handler to .menu-toggle');
+        } else {
+            console.warn('Sidebar.setupMobileToggle: .menu-toggle or .sidebar not found');
+        }
+
+        // Fallback: if there's a top-nav hamburger (nav-toggle), attach to it as well
+        if (navToggle && sidebar) {
+            navToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.debug('navToggle clicked - toggling sidebar.open (fallback)');
+                sidebar.classList.toggle('open');
+            });
+            console.debug('Attached click handler to .nav-toggle (fallback)');
         }
 
         if (sidebarToggle && sidebar) {
-            sidebarToggle.addEventListener('click', () => {
+            sidebarToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.debug('sidebarToggle clicked - removing sidebar.open');
                 sidebar.classList.remove('open');
             });
+            console.debug('Attached click handler to .sidebar-toggle');
         }
 
-        // Close sidebar when clicking outside on mobile
+        // Close sidebar when clicking outside on mobile (safe checks)
         document.addEventListener('click', (e) => {
             if (window.innerWidth <= 1024) {
-                if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                const clickedOutsideSidebar = sidebar && !sidebar.contains(e.target);
+                const clickedOutsideMenuToggle = !menuToggle || (menuToggle && !menuToggle.contains(e.target));
+                if (clickedOutsideSidebar && clickedOutsideMenuToggle) {
+                    console.debug('Clicked outside sidebar and menu toggle - closing sidebar');
                     sidebar.classList.remove('open');
                 }
             }
