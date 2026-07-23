@@ -1,0 +1,66 @@
+# Docker Compose - AI Data Explainer+
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-data-explainer-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - AI_PROVIDER=ollama
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - MAX_FILE_SIZE=10485760
+      - UPLOAD_DIR=/app/backend/uploads
+      - REPORT_DIR=/app/backend/reports
+      - CORS_ORIGIN=*
+    volumes:
+      - backend-uploads:/app/backend/uploads
+      - backend-reports:/app/backend/reports
+      - backend-logs:/app/backend/logs
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    networks:
+      - ai-data-explainer-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health", "--timeout=10"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ai-data-explainer-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - ai-data-explainer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  backend-uploads:
+  backend-reports:
+  backend-logs:
+  ollama-data:
+
+networks:
+  ai-data-explainer-network:
+    driver: bridge

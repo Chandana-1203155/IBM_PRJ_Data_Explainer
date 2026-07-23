@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI Data Explainer+ - Transform Raw Data into Intelligent Business Insights">
+    <title>AI Data Explainer+ - Transform Raw Data into Insights</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- AOS Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/landing.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+<body class="light-theme">
+    <!-- Landing Page -->
+    <div id="landing-page">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>AI Data Explainer+</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#workflow">How It Works</a></li>
+                    <li><a href="#" class="btn-primary" onclick="showDashboard()">Get Started</a></li>
+                </ul>
+                <div class="nav-toggle">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-container">
+                <div class="hero-content" data-aos="fade-right">
+                    <h1 class="hero-title">Transform Raw Data into Intelligent Business Insights</h1>
+                    <p class="hero-subtitle">Upload your CSV or Excel datasets and get instant AI-powered analytics, visualizations, and actionable recommendations without any technical expertise.</p>
+                    <div class="hero-buttons">
+                        <button class="btn-primary btn-large" onclick="showDashboard()">
+                            <i class="fas fa-rocket"></i>
+                            Get Started Free
+                        </button>
+                        <button class="btn-secondary btn-large" onclick="scrollToSection('features')">
+                            <i class="fas fa-play-circle"></i>
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-visual" data-aos="fade-left">
+                    <div class="hero-card">
+                        <div class="card-header">
+                            <span class="card-icon"><i class="fas fa-file-csv"></i></span>
+                            <span class="card-title">Dataset Analysis</span>
+                        </div>
+                        <div class="card-stats">
+                            <div class="stat">
+                                <span class="stat-value">1,234</span>
+                                <span class="stat-label">Rows</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value">15</span>
+                                <span class="stat-label">Columns</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value">98%</span>
+                                <span class="stat-label">Complete</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="features">
+            <div class="section-container">
+                <div class="section-header" data-aos="fade-up">
+                    <h2 class="section-title">Powerful Features</h2>
+                    <p class="section-subtitle">Everything you need to understand your data in minutes</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="feature-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <h3>Easy Upload</h3>
+                        <p>Drag & drop your CSV or Excel files. We handle the rest.</p>
+                    </div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h3>Smart Visualizations</h3>
+                        <p>Automatic chart generation tailored to your data.</p>
+                    </div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3>AI Insights</h3>
+                        <p>Get intelligent insights powered by advanced AI models.</p>
+                    </div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+                        <div class="feature-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3>Chat with Data</h3>
+                        <p>Ask questions in natural language and get instant answers.</p>
+                    </div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
+                        <div class="feature-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3>Recommendations</h3>
+                        <p>Receive actionable business recommendations.</p>
+                    </div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="600">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <h3>PDF Reports</h3>
+                        <p>Generate professional reports to share with stakeholders.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Workflow Section -->
+        <section id="workflow" class="workflow">
+            <div class="section-container">
+                <div class="section-header" data-aos="fade-up">
+                    <h2 class="section-title">How It Works</h2>
+                    <p class="section-subtitle">Three simple steps to insights</p>
+                </div>
+                <div class="workflow-steps">
+                    <div class="workflow-step" data-aos="fade-up" data-aos-delay="100">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Upload Your Data</h3>
+                            <p>Drag and drop your CSV or Excel file. We support files up to 10MB.</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step" data-aos="fade-up" data-aos-delay="200">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Automatic Analysis</h3>
+                            <p>Our AI analyzes your data, generates charts, and extracts insights.</p>
+                        </div>
+                    </div>
+                    <div class="workflow-step" data-aos="fade-up" data-aos-delay="300">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Get Insights</h3>
+                            <p>View visualizations, read AI-powered insights, and chat with your data.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta">
+            <div class="cta-container" data-aos="fade-up">
+                <h2 class="cta-title">Ready to Transform Your Data?</h2>
+                <p class="cta-subtitle">Start analyzing your datasets now. No signup required.</p>
+                <button class="btn-primary btn-large" onclick="showDashboard()">
+                    <i class="fas fa-rocket"></i>
+                    Get Started Now
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-container">
+                <div class="footer-content">
+                    <div class="footer-brand">
+                        <i class="fas fa-chart-line"></i>
+                        <span>AI Data Explainer+</span>
+                    </div>
+                    <p class="footer-tagline">Transform Raw Data into Intelligent Business Insights</p>
+                </div>
+                <div class="footer-copyright">
+                    <p>&copy; 2024 AI Data Explainer+. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Dashboard (Hidden by default) -->
+    <div id="dashboard-page" class="hidden">
+        <!-- Dashboard Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>AI Data Explainer+</span>
+                </div>
+                <button class="sidebar-toggle">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="#" class="nav-item active" data-section="upload">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item" data-section="overview">
+                            <i class="fas fa-table"></i>
+                            <span>Overview</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item" data-section="charts">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Charts</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item" data-section="insights">
+                            <i class="fas fa-brain"></i>
+                            <span>AI Insights</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item" data-section="chat">
+                            <i class="fas fa-comments"></i>
+                            <span>Chat with Data</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item" data-section="recommendations">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Recommendations</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item" data-section="report">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Generate Report</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-secondary" onclick="showLanding()">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Home
+                </button>
+            </div>
+        </aside>
+
+        <!-- Dashboard Main Content -->
+        <main class="dashboard-main">
+            <!-- Dashboard Header -->
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="dashboard-title">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <button class="theme-toggle" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="btn-primary" onclick="resetDashboard()">
+                        <i class="fas fa-redo"></i>
+                        New Analysis
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content Area -->
+            <div class="dashboard-content">
+                <!-- Upload Section -->
+                <section id="section-upload" class="content-section active">
+                    <div class="section-header">
+                        <h2>Upload Dataset</h2>
+                        <p>Upload your CSV or Excel file to begin analysis</p>
+                    </div>
+                    <div class="upload-area" id="upload-area">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h3>Drag & Drop your file here</h3>
+                            <p>or</p>
+                            <button class="btn-primary" onclick="document.getElementById('file-input').click()">
+                                <i class="fas fa-folder-open"></i>
+                                Browse Files
+                            </button>
+                            <input type="file" id="file-input" accept=".csv,.xlsx" hidden>
+                            <p class="upload-info">Supported formats: CSV, Excel (.xlsx) | Max size: 10MB</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Overview Section -->
+                <section id="section-overview" class="content-section">
+                    <div class="section-header">
+                        <h2>Dataset Overview</h2>
+                        <p>Summary of your uploaded dataset</p>
+                    </div>
+                    <div class="overview-cards" id="overview-cards">
+                        <div class="card skeleton">
+                            <div class="card-icon"><i class="fas fa-table"></i></div>
+                            <div class="card-content">
+                                <div class="card-value skeleton-text"></div>
+                                <div class="card-label skeleton-text"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="data-preview" id="data-preview">
+                        <div class="preview-table skeleton">
+                            <table>
+                                <thead>
+                                    <tr><th class="skeleton-text"></th><th class="skeleton-text"></th><th class="skeleton-text"></th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="skeleton-text"></td><td class="skeleton-text"></td><td class="skeleton-text"></td></tr>
+                                    <tr><td class="skeleton-text"></td><td class="skeleton-text"></td><td class="skeleton-text"></td></tr>
+                                    <tr><td class="skeleton-text"></td><td class="skeleton-text"></td><td class="skeleton-text"></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section id="section-charts" class="content-section">
+                    <div class="section-header">
+                        <h2>Visualizations</h2>
+                        <p>Automatic charts generated from your data</p>
+                    </div>
+                    <div class="charts-container" id="charts-container">
+                        <div class="chart-placeholder">
+                            <i class="fas fa-chart-bar"></i>
+                            <p>Upload a dataset to generate charts</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Insights Section -->
+                <section id="section-insights" class="content-section">
+                    <div class="section-header">
+                        <h2>AI Insights</h2>
+                        <p>Intelligent analysis powered by AI</p>
+                    </div>
+                    <div class="insights-container" id="insights-container">
+                        <div class="insight-placeholder">
+                            <i class="fas fa-brain"></i>
+                            <p>Upload a dataset to generate AI insights</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Chat Section -->
+                <section id="section-chat" class="content-section">
+                    <div class="section-header">
+                        <h2>Chat with Data</h2>
+                        <p>Ask questions about your dataset</p>
+                    </div>
+                    <div class="chat-container" id="chat-container">
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="chat-placeholder">
+                                <i class="fas fa-comments"></i>
+                                <p>Upload a dataset to start chatting</p>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-input" placeholder="Ask a question about your data..." disabled>
+                            <button class="btn-primary" id="chat-send" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recommendations Section -->
+                <section id="section-recommendations" class="content-section">
+                    <div class="section-header">
+                        <h2>Recommendations</h2>
+                        <p>Actionable business recommendations</p>
+                    </div>
+                    <div class="recommendations-container" id="recommendations-container">
+                        <div class="recommendation-placeholder">
+                            <i class="fas fa-lightbulb"></i>
+                            <p>Upload a dataset to get recommendations</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Report Section -->
+                <section id="section-report" class="content-section">
+                    <div class="section-header">
+                        <h2>Generate Report</h2>
+                        <p>Create a professional PDF report</p>
+                    </div>
+                    <div class="report-container">
+                        <div class="report-preview">
+                            <i class="fas fa-file-pdf"></i>
+                            <p>Your report will include:</p>
+                            <ul>
+                                <li>Dataset overview</li>
+                                <li>Statistics</li>
+                                <li>Charts</li>
+                                <li>AI insights</li>
+                                <li>Recommendations</li>
+                            </ul>
+                        </div>
+                        <button class="btn-primary btn-large" id="generate-report" disabled>
+                            <i class="fas fa-download"></i>
+                            Generate PDF Report
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- AOS Animation Library -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script src="js/main.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/utils/api.js"></script>
+    <script src="js/utils/validators.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/components/navbar.js"></script>
+    <script src="js/components/sidebar.js"></script>
+    <script src="js/components/upload.js"></script>
+    <script src="js/components/chat.js"></script>
+    <script src="js/components/theme-toggle.js"></script>
+    <script src="js/components/toast.js"></script>
+    <script src="js/components/loading.js"></script>
+    <script src="js/pages/landing.js"></script>
+    <script src="js/pages/dashboard.js"></script>
+    <script src="js/services/dataset-service.js"></script>
+    <script src="js/services/chart-service.js"></script>
+    <script src="js/services/report-service.js"></script>
+</body>
+</html>

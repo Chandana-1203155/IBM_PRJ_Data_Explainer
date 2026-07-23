@@ -1,0 +1,126 @@
+/* Theme Styles - AI Data Explainer+ */
+
+/* Theme Toggle Button */
+.theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Dark Mode Specific Styles */
+.dark-theme {
+    --primary-color: #818cf8;
+    --primary-hover: #6366f1;
+    --secondary-color: #a78bfa;
+    --secondary-hover: #8b5cf6;
+    --background-color: #0f172a;
+    --surface-color: #1e293b;
+    --text-color: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* Light Mode Specific Styles */
+.light-theme {
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    --secondary-color: #8b5cf6;
+    --secondary-hover: #7c3aed;
+    --background-color: #f8fafc;
+    --surface-color: #ffffff;
+    --text-color: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Theme Transition */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark Mode Overrides for Specific Elements */
+.dark-theme .navbar {
+    background: rgba(15, 23, 42, 0.9);
+}
+
+.dark-theme .hero {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+}
+
+.dark-theme .feature-card,
+.dark-theme .card,
+.dark-theme .insight-card,
+.dark-theme .recommendation-card,
+.dark-theme .chart-card {
+    background: var(--surface-color);
+}
+
+.dark-theme .preview-table th {
+    background: var(--background-color);
+}
+
+.dark-theme .preview-table tr:hover {
+    background: var(--background-color);
+}
+
+.dark-theme .chat-message.ai .chat-message-content {
+    background: var(--background-color);
+}
+
+/* Scrollbar Styling for Dark Mode */
+.dark-theme ::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dark-theme ::-webkit-scrollbar-track {
+    background: var(--background-color);
+}
+
+.dark-theme ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.dark-theme ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* Light Mode Scrollbar */
+.light-theme ::-webkit-scrollbar {
+    width: 8px;
+}
+
+.light-theme ::-webkit-scrollbar-track {
+    background: var(--background-color);
+}
+
+.light-theme ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.light-theme ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}

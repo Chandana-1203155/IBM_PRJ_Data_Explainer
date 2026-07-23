@@ -1,0 +1,57 @@
+# Docker Compose Development - AI Data Explainer+
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-data-explainer-backend-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - AI_PROVIDER=ollama
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama3.2
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - MAX_FILE_SIZE=10485760
+      - UPLOAD_DIR=/app/backend/uploads
+      - REPORT_DIR=/app/backend/reports
+      - CORS_ORIGIN=*
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+      - backend-uploads:/app/backend/uploads
+      - backend-reports:/app/backend/reports
+      - backend-logs:/app/backend/logs
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    networks:
+      - ai-data-explainer-network
+    command: npm run dev
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ai-data-explainer-ollama-dev
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - ai-data-explainer-network
+
+volumes:
+  backend-uploads:
+  backend-reports:
+  backend-logs:
+  ollama-data:
+
+networks:
+  ai-data-explainer-network:
+    driver: bridge

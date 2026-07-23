@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment
+.env
+
+# Temporary files
+uploads/*
+reports/*
+logs/*
+!uploads/.gitkeep
+!reports/.gitkeep
+!logs/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
