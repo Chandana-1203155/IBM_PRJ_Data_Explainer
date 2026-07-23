@@ -53,8 +53,6 @@ const Dashboard = {
     captureChartImages() {
         return new Promise(async (resolve) => {
             const chartImages = [];
-            const chartCards = document.querySelectorAll('#charts-container .chart-card');
-            const MAX_IMAGE_WIDTH = 1000;
 
             ChartService.refreshAllCharts();
 
@@ -64,38 +62,22 @@ const Dashboard = {
                 console.warn('waitForAllChartsRendered failed or timed out:', err);
             }
 
+            const charts = ChartService.exportChartImages(1000, 0.8);
+            if (charts.length > 0) {
+                charts.forEach(chart => {
+                    chartImages.push({ title: chart.title, image: chart.image });
+                });
+                resolve(chartImages);
+                return;
+            }
+
+            const chartCards = document.querySelectorAll('#charts-container .chart-card');
             for (const card of chartCards) {
                 const style = window.getComputedStyle(card);
                 if (style.display === 'none' || style.visibility === 'hidden') continue;
 
                 const titleEl = card.querySelector('.chart-card-header h3') || card.querySelector('h3');
                 const title = titleEl ? titleEl.textContent.trim() : 'Chart';
-                const canvas = card.querySelector('canvas');
-
-                if (canvas && canvas.width > 0 && canvas.height > 0) {
-                    try {
-                        let finalCanvas = canvas;
-                        if (canvas.width > MAX_IMAGE_WIDTH) {
-                            const ratio = MAX_IMAGE_WIDTH / canvas.width;
-                            const scaledCanvas = document.createElement('canvas');
-                            scaledCanvas.width = MAX_IMAGE_WIDTH;
-                            scaledCanvas.height = Math.max(1, Math.floor(canvas.height * ratio));
-                            const ctx = scaledCanvas.getContext('2d');
-                            ctx.imageSmoothingEnabled = true;
-                            ctx.imageSmoothingQuality = 'high';
-                            ctx.fillStyle = '#ffffff';
-                            ctx.fillRect(0, 0, scaledCanvas.width, scaledCanvas.height);
-                            ctx.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
-                            finalCanvas = scaledCanvas;
-                        }
-
-                        const dataUrl = finalCanvas.toDataURL('image/jpeg', 0.8);
-                        chartImages.push({ title, image: dataUrl });
-                        continue;
-                    } catch (err) {
-                        console.error('Canvas capture failed for chart:', err);
-                    }
-                }
 
                 try {
                     const captured = await html2canvas(card, {
@@ -111,6 +93,7 @@ const Dashboard = {
                     console.error('html2canvas fallback capture failed for card:', err);
                 }
             }
+
             resolve(chartImages);
         });
     },
