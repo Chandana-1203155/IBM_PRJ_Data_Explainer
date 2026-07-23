@@ -970,26 +970,16 @@ class ReportService {
                 });
             } catch (error) {
                 console.error(`Failed to embed chart ${index + 1}:`, error);
-                try {
-                    console.warn(`Retrying chart ${index + 1} with PNG parse fallback`);
-                    image = await this.embedChartImage(pdfDoc, chartImage.image, true);
-                    console.log(`Fallback embedded chart ${index + 1} dimensions:`, {
-                        width: image.width,
-                        height: image.height
-                    });
-                } catch (fallbackError) {
-                    console.error(`Failed fallback embed for chart ${index + 1}:`, fallbackError);
-                    const title = chartImage.title || `Chart ${index + 1}`;
-                    page.drawText(`Chart ${index + 1} failed to embed: ${title}`, {
-                        x: this.margin,
-                        y: y,
-                        size: 12,
-                        font: font,
-                        color: rgb(1, 0, 0)
-                    });
-                    y -= 30;
-                    continue;
-                }
+                const title = chartImage.title || `Chart ${index + 1}`;
+                page.drawText(`Chart ${index + 1} failed to embed: ${title}`, {
+                    x: this.margin,
+                    y: y,
+                    size: 12,
+                    font: font,
+                    color: rgb(1, 0, 0)
+                });
+                y -= 30;
+                continue;
             }
 
             let imgWidth = Math.min(this.contentWidth, image.width);
@@ -1122,7 +1112,7 @@ class ReportService {
         });
     }
 
-    async embedChartImage(pdfDoc, imageData, forcePng = false) {
+    async embedChartImage(pdfDoc, imageData) {
         const dataUrl = String(imageData || '');
         const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9+.\-]+)(;charset=[^;]+)?;base64,(.+)$/);
         if (!match) {
@@ -1133,23 +1123,15 @@ class ReportService {
         const base64 = match[3];
         const buffer = Buffer.from(base64, 'base64');
 
-        if (!forcePng && (mimeType.includes('jpeg') || mimeType.includes('jpg'))) {
-            try {
-                return await pdfDoc.embedJpg(buffer);
-            } catch (error) {
-                console.warn('JPG embed failed, falling back to PNG:', error.message);
-            }
-        }
-
-        if (mimeType.includes('png') || forcePng) {
+        if (mimeType.includes('png')) {
             return await pdfDoc.embedPng(buffer);
         }
 
-        try {
-            return await pdfDoc.embedPng(buffer);
-        } catch (error) {
-            throw new Error(`Failed to embed image data as PNG/PDF: ${error.message}`);
+        if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
+            return await pdfDoc.embedJpg(buffer);
         }
+
+        throw new Error(`Unsupported embedded image type: ${mimeType}`);
     }
 
     drawTable(page, pdfDoc, headers, rows, colWidths, x, y, font, boldFont, options = {}) {

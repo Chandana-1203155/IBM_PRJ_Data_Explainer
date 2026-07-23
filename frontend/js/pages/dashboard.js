@@ -87,7 +87,7 @@ const Dashboard = {
 
                     if (canvas && canvas.width > 0 && canvas.height > 0) {
                         try {
-                            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                            const dataUrl = canvas.toDataURL('image/png');
                             chartImages.push({ title, image: dataUrl });
                             continue;
                         } catch (err) {
@@ -103,7 +103,7 @@ const Dashboard = {
                             allowTaint: false,
                             logging: false
                         });
-                        const dataUrl = captured.toDataURL('image/jpeg', 0.75);
+                        const dataUrl = captured.toDataURL('image/png');
                         chartImages.push({ title, image: dataUrl });
                     } catch (err) {
                         console.error('html2canvas fallback capture failed for card:', err);

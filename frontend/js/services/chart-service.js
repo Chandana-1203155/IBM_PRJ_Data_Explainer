@@ -327,7 +327,7 @@ const ChartService = {
             let dataUrl;
 
             try {
-                dataUrl = chart.canvas.toDataURL('image/jpeg', quality);
+                dataUrl = chart.canvas.toDataURL('image/png');
             } catch (error) {
                 console.warn(`Failed to export chart image for ${chartId}:`, error);
                 return;
