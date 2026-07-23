@@ -7,7 +7,7 @@ WORKDIR /app/backend
 
 COPY backend/package*.json ./
 
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Stage 2: Production
 FROM node:18-alpine AS production
