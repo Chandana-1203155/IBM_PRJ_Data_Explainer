@@ -21,8 +21,8 @@ class ReportController {
             // Generate PDF report
             const report = await reportService.generateReport(session, chartImages || []);
 
-            // Return absolute URL so the frontend can download the file directly
-            const reportUrl = `${req.protocol}://${req.get('host')}${report.reportUrl}`;
+            // Return a relative report URL so the browser uses the current page protocol
+            const reportUrl = report.reportUrl;
 
             res.json({
                 success: true,
