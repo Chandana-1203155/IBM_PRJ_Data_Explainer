@@ -317,23 +317,44 @@ const ChartService = {
         });
     },
 
-    exportChartImages(maxWidth = 1000, quality = 0.8) {
+    exportChartImages(maxWidth = 1000) {
         const images = [];
 
         Object.entries(this.charts).forEach(([chartId, chart]) => {
             if (!chart || !chart.canvas) return;
 
             const title = chart.options?.plugins?.title?.text || chartId || 'Chart';
+            const sourceCanvas = chart.canvas;
+            const sourceWidth = sourceCanvas.width;
+            const sourceHeight = sourceCanvas.height;
+
+            if (!sourceWidth || !sourceHeight) {
+                console.warn(`Skipping chart export because canvas has invalid size: ${chartId}`);
+                return;
+            }
+
+            const targetWidth = Math.min(maxWidth, sourceWidth);
+            const targetHeight = Math.round((sourceHeight / sourceWidth) * targetWidth);
             let dataUrl;
 
             try {
-                dataUrl = chart.canvas.toDataURL('image/png');
+                if (targetWidth === sourceWidth && targetHeight === sourceHeight) {
+                    dataUrl = sourceCanvas.toDataURL('image/png');
+                } else {
+                    const exportCanvas = document.createElement('canvas');
+                    exportCanvas.width = targetWidth;
+                    exportCanvas.height = targetHeight;
+                    const exportCtx = exportCanvas.getContext('2d');
+                    exportCtx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
+                    dataUrl = exportCanvas.toDataURL('image/png');
+                }
             } catch (error) {
                 console.warn(`Failed to export chart image for ${chartId}:`, error);
                 return;
             }
 
-            if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
+            if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/png;base64,')) {
+                console.warn(`Unsupported chart image export format for ${chartId}`);
                 return;
             }
 
@@ -345,26 +366,28 @@ const ChartService = {
 
     async waitForAllChartsRendered(timeoutMs = 5000) {
         const start = Date.now();
-
         const chartIds = Object.keys(this.charts);
         if (chartIds.length === 0) return;
 
         const check = () => {
             for (const id of chartIds) {
+                const chart = this.charts[id];
+                if (!chart || !chart.canvas) return false;
+                if (!chart.chartArea || chart.chartArea.right <= chart.chartArea.left || chart.chartArea.bottom <= chart.chartArea.top) {
+                    return false;
+                }
+
+                const canvas = chart.canvas;
+                if (canvas.width < 20 || canvas.height < 20) return false;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return false;
+
                 try {
-                    const canvas = document.getElementById(id);
-                    if (!canvas) return false;
-                    if (canvas.width < 20 || canvas.height < 20) return false;
-                    const ctx = canvas.getContext('2d');
-                    if (!ctx) return false;
-                    // sample center pixel to ensure something has been drawn
                     const x = Math.floor(canvas.width / 2);
                     const y = Math.floor(canvas.height / 2);
                     const data = ctx.getImageData(x, y, 1, 1).data;
-                    // alpha channel > 0 indicates drawing present
                     if (!data || data[3] === 0) return false;
                 } catch (err) {
-                    // if getImageData throws (very unlikely for same-origin), treat as not ready
                     return false;
                 }
             }
@@ -375,7 +398,7 @@ const ChartService = {
             const tick = () => {
                 if (check()) return resolve();
                 if (Date.now() - start > timeoutMs) return resolve();
-                window.setTimeout(tick, 150);
+                window.setTimeout(tick, 120);
             };
             tick();
         });

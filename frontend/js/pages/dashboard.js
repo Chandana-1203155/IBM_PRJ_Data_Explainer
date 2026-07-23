@@ -65,12 +65,12 @@ const Dashboard = {
             ChartService.refreshAllCharts();
 
             try {
-                await ChartService.waitForAllChartsRendered(3000);
+                await ChartService.waitForAllChartsRendered(10000);
             } catch (err) {
                 console.warn('waitForAllChartsRendered failed or timed out:', err);
             }
 
-            const charts = ChartService.exportChartImages(1000, 0.8);
+            const charts = ChartService.exportChartImages(1000);
             if (charts.length > 0) {
                 charts.forEach(chart => chartImages.push({ title: chart.title, image: chart.image }));
             }

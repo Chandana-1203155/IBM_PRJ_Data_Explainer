@@ -936,18 +936,25 @@ class ReportService {
     }
 
     async addCharts(page, pdfDoc, session, chartImages, font, boldFont) {
-        const { height } = page.getSize();
-        let y = height - 80;
+        const pageHeight = page.getSize().height;
+        const pageWidth = page.getSize().width;
+        const headerY = pageHeight - 80;
+        const maxChartWidth = this.contentWidth;
+        const maxChartHeight = pageHeight - this.margin - 120;
+        let y = headerY;
 
-        page.drawText('Charts', {
-            x: this.margin,
-            y: y,
-            size: 24,
-            font: boldFont,
-            color: rgb(0.13, 0.2, 0.55)
-        });
+        const renderPageHeader = (pageToDraw) => {
+            pageToDraw.drawText('Charts', {
+                x: this.margin,
+                y: headerY,
+                size: 24,
+                font: boldFont,
+                color: rgb(0.13, 0.2, 0.55)
+            });
+            return headerY - 50;
+        };
 
-        y -= 50;
+        y = renderPageHeader(page);
 
         console.log('Embedding chart images into PDF:', chartImages.length);
         chartImages.forEach((item, idx) => {
@@ -956,8 +963,19 @@ class ReportService {
 
         for (let index = 0; index < chartImages.length; index++) {
             const chartImage = chartImages[index];
+            const title = chartImage?.title || `Chart ${index + 1}`;
+
             if (!chartImage || !chartImage.image) {
-                console.warn(`Skipping invalid chart image at index ${index}`);
+                const message = `Chart ${index + 1} failed: missing image payload`;
+                console.error(message, chartImage);
+                page.drawText(message, {
+                    x: this.margin,
+                    y: y,
+                    size: 12,
+                    font: font,
+                    color: rgb(1, 0, 0)
+                });
+                y -= 30;
                 continue;
             }
 
@@ -969,9 +987,9 @@ class ReportService {
                     height: image.height
                 });
             } catch (error) {
-                console.error(`Failed to embed chart ${index + 1}:`, error);
-                const title = chartImage.title || `Chart ${index + 1}`;
-                page.drawText(`Chart ${index + 1} failed to embed: ${title}`, {
+                const message = `Chart ${index + 1} failed to embed: ${title}`;
+                console.error(message, error);
+                page.drawText(message, {
                     x: this.margin,
                     y: y,
                     size: 12,
@@ -982,20 +1000,18 @@ class ReportService {
                 continue;
             }
 
-            let imgWidth = Math.min(this.contentWidth, image.width);
-            let imgHeight = imgWidth * (image.height / image.width);
+            let imgWidth = image.width;
+            let imgHeight = image.height;
+            const scale = Math.min(maxChartWidth / imgWidth, maxChartHeight / imgHeight, 1);
+            imgWidth = Math.round(imgWidth * scale);
+            imgHeight = Math.round(imgHeight * scale);
+            const imgX = this.margin + ((maxChartWidth - imgWidth) / 2);
 
-            if (imgHeight > this.pageHeight - 200) {
-                imgHeight = this.pageHeight - 200;
-                imgWidth = imgHeight * (image.width / image.height);
-            }
-
-            if (y - 30 - imgHeight < 80) {
+            if (y - imgHeight < this.margin + 60) {
                 page = pdfDoc.addPage([this.pageWidth, this.pageHeight]);
-                y = this.pageHeight - 80;
+                y = renderPageHeader(page);
             }
 
-            const title = chartImage.title || `Chart ${index + 1}`;
             page.drawText(`${index + 1}. ${title}`, {
                 x: this.margin,
                 y: y,
@@ -1003,17 +1019,17 @@ class ReportService {
                 font: boldFont,
                 color: rgb(0.13, 0.2, 0.55)
             });
-
             y -= 30;
 
             page.drawImage(image, {
-                x: this.margin,
+                x: imgX,
                 y: y - imgHeight,
                 width: imgWidth,
                 height: imgHeight
             });
 
             y -= imgHeight + 40;
+            chartImages[index].image = null;
         }
 
         return page;
@@ -1121,13 +1137,26 @@ class ReportService {
 
         const mimeType = match[1];
         const base64 = match[3];
+        if (!base64 || base64.length < 100) {
+            throw new Error('Chart image base64 payload is empty or too short');
+        }
+
         const buffer = Buffer.from(base64, 'base64');
+        if (!buffer || buffer.length === 0) {
+            throw new Error('Failed to decode chart image data');
+        }
 
         if (mimeType.includes('png')) {
+            if (buffer.length < 1000 || !buffer.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]))) {
+                throw new Error('Invalid PNG image data');
+            }
             return await pdfDoc.embedPng(buffer);
         }
 
         if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
+            if (buffer.length < 1000 || buffer[0] !== 0xFF || buffer[1] !== 0xD8) {
+                throw new Error('Invalid JPEG image data');
+            }
             return await pdfDoc.embedJpg(buffer);
         }
 
