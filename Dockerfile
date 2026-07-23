@@ -3,13 +3,11 @@
 # Stage 1: Build
 FROM node:18-alpine AS builder
 
-WORKDIR /app
+WORKDIR /app/backend
 
-# Copy package files
-COPY package*.json ./
+COPY backend/package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Stage 2: Production
 FROM node:18-alpine AS production
@@ -24,8 +22,7 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
 # Copy dependencies from builder
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
-
+COPY --from=builder --chown=nodejs:nodejs /app/backend/node_modules ./backend/node_modules
 # Copy application files
 COPY --chown=nodejs:nodejs package*.json ./
 COPY --chown=nodejs:nodejs backend ./backend
