@@ -27,7 +27,7 @@ const env = {
     nodeEnv: process.env.NODE_ENV || 'development',
 
     // AI Provider
-    aiProvider: process.env.AI_PROVIDER || 'ollama',
+    aiProvider: process.env.AI_PROVIDER || 'groq',
 
     // Ollama
     ollamaBaseUrl,
