@@ -26,6 +26,14 @@ const Dashboard = {
 
                 try {
                     const chartImages = await this.captureChartImages();
+                    console.log('Sending report with chartImages count:', chartImages.length);
+                    if (chartImages.length > 0) {
+                        console.log('First chart image sample:', {
+                            title: chartImages[0].title,
+                            prefix: String(chartImages[0].image).slice(0, 60),
+                            length: chartImages[0].image.length
+                        });
+                    }
                     const response = await API.generateReport(App.state.sessionId, chartImages);
                     
                     if (response.success) {
@@ -104,6 +112,14 @@ const Dashboard = {
             }
 
             console.log('Report chart images count:', chartImages.length, chartImages.map((c) => c.title));
+            if (chartImages.length > 0) {
+                const first = chartImages[0];
+                console.log('First captured chart image preview:', {
+                    title: first.title,
+                    prefix: first.image?.slice?.(0, 60),
+                    length: first.image?.length
+                });
+            }
             resolve(chartImages);
         });
     },
