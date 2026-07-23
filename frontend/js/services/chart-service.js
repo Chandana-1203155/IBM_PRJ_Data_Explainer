@@ -318,30 +318,29 @@ const ChartService = {
     },
 
     exportChartImages(maxWidth = 1000, quality = 0.8) {
-        return Object.entries(this.charts).reduce((result, [chartId, chart]) => {
-            if (!chart || !chart.canvas) return result;
+        const images = [];
+
+        Object.entries(this.charts).forEach(([chartId, chart]) => {
+            if (!chart || !chart.canvas) return;
 
             const title = chart.options?.plugins?.title?.text || chartId || 'Chart';
             let dataUrl;
 
             try {
-                if (typeof chart.toBase64Image === 'function') {
-                    dataUrl = chart.toBase64Image('image/jpeg', quality);
-                } else {
-                    dataUrl = chart.canvas.toDataURL('image/jpeg', quality);
-                }
+                dataUrl = chart.canvas.toDataURL('image/jpeg', quality);
             } catch (error) {
                 console.warn(`Failed to export chart image for ${chartId}:`, error);
-                return result;
+                return;
             }
 
             if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
-                return result;
+                return;
             }
 
-            result.push({ title, image: dataUrl });
-            return result;
-        }, []);
+            images.push({ title, image: dataUrl });
+        });
+
+        return images;
     },
 
     async waitForAllChartsRendered(timeoutMs = 5000) {
