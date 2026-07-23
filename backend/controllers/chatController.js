@@ -6,6 +6,13 @@ const chatHistoryManager = require('../utils/chatHistoryManager');
 const constants = require('../config/constants');
 
 class ChatController {
+    constructor() {
+        this.chat = this.chat.bind(this);
+        this.generateFallbackResponse = this.generateFallbackResponse.bind(this);
+        this.getHistory = this.getHistory.bind(this);
+        this.clearHistory = this.clearHistory.bind(this);
+    }
+
     async chat(req, res) {
         try {
             const { sessionId, question } = req.body;
@@ -43,7 +50,7 @@ class ChatController {
             } catch (aiError) {
                 console.error('AI chat error, using fallback:', aiError);
                 // Send fallback response
-                fullResponse = this.generateFallbackResponse(session, question);
+                fullResponse = ChatController.createFallbackResponse(session, question);
                 res.write(`data: ${JSON.stringify({ type: 'chunk', content: fullResponse })}\n\n`);
             }
 
@@ -62,12 +69,16 @@ class ChatController {
     }
 
     generateFallbackResponse(session, question) {
-        const metadata = session.metadata || {};
-        const questionLower = question.toLowerCase();
-        
-        if (questionLower.includes('row') || questionLower.includes('record') || questionLower.includes('count')) {
+        return ChatController.createFallbackResponse(session, question);
+    }
+
+    static createFallbackResponse(session, question) {
+        const metadata = session?.metadata || {};
+        const questionText = String(question || '').toLowerCase();
+
+        if (questionText.includes('row') || questionText.includes('record') || questionText.includes('count')) {
             return `The dataset contains ${metadata.rows || 'unknown'} rows/records.`;
-        } else if (questionLower.includes('column') || questionLower.includes('field')) {
+        } else if (questionText.includes('column') || questionText.includes('field')) {
             return `The dataset has ${metadata.columns || 'unknown'} columns: ${(metadata.columnNames || []).slice(0, 5).join(', ')}.`;
         } else {
             return `I apologize, but the AI service is currently unavailable. Your dataset has ${metadata.rows || 'unknown'} rows and ${metadata.columns || 'unknown'} columns. Please check your AI provider configuration.`;
