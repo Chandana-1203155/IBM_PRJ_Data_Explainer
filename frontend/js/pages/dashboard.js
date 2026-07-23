@@ -51,122 +51,67 @@ const Dashboard = {
     },
 
     captureChartImages() {
-        return new Promise((resolve) => {
+        return new Promise(async (resolve) => {
             const chartImages = [];
-            const chartsSection = document.getElementById('section-charts');
-            const canvases = document.querySelectorAll('#charts-container canvas');
-
-            // Temporarily show charts section so canvases render at full size
-            let wasHidden = false;
-            const previousStyles = {};
-            if (chartsSection && !chartsSection.classList.contains('active')) {
-                wasHidden = true;
-                // Keep charts rendered but offscreen and invisible to user — avoid visibility:hidden which can prevent rendering
-                previousStyles.display = chartsSection.style.display;
-                previousStyles.position = chartsSection.style.position;
-                previousStyles.left = chartsSection.style.left;
-                previousStyles.opacity = chartsSection.style.opacity;
-                previousStyles.pointerEvents = chartsSection.style.pointerEvents;
-
-                chartsSection.style.display = 'block';
-                chartsSection.style.position = 'absolute';
-                chartsSection.style.left = '-9999px';
-                chartsSection.style.opacity = '0';
-                chartsSection.style.pointerEvents = 'none';
-            }
+            const chartCards = document.querySelectorAll('#charts-container .chart-card');
+            const MAX_IMAGE_WIDTH = 1000;
 
             ChartService.refreshAllCharts();
 
-            window.requestAnimationFrame(async () => {
-                // Wait for ChartService to report that charts have rendered and stabilized
-                try {
-                    await ChartService.waitForAllChartsRendered(5000);
-                } catch (err) {
-                    console.warn('waitForAllChartsRendered failed or timed out:', err);
-                }
+            try {
+                await ChartService.waitForAllChartsRendered(3000);
+            } catch (err) {
+                console.warn('waitForAllChartsRendered failed or timed out:', err);
+            }
 
-                const chartCards = document.querySelectorAll('#charts-container .chart-card');
-                const MAX_IMAGE_WIDTH = 1000;
+            for (const card of chartCards) {
+                const style = window.getComputedStyle(card);
+                if (style.display === 'none' || style.visibility === 'hidden') continue;
 
-                for (const card of chartCards) {
+                const titleEl = card.querySelector('.chart-card-header h3') || card.querySelector('h3');
+                const title = titleEl ? titleEl.textContent.trim() : 'Chart';
+                const canvas = card.querySelector('canvas');
+
+                if (canvas && canvas.width > 0 && canvas.height > 0) {
                     try {
-                        const style = window.getComputedStyle(card);
-                        if (style.display === 'none' || style.visibility === 'hidden') continue;
-
-                        const titleEl = card.querySelector('.chart-card-header h3') || card.querySelector('h3');
-                        const title = titleEl ? titleEl.textContent.trim() : 'Chart';
-
-                        card.style.opacity = '1';
-
-                        const elementWidth = card.scrollWidth || card.offsetWidth;
-                        const captureScale = Math.min(2, MAX_IMAGE_WIDTH / Math.max(1, elementWidth));
-                        const options = {
-                            scale: captureScale,
-                            useCORS: true,
-                            backgroundColor: '#ffffff',
-                            allowTaint: false,
-                            logging: false,
-                            width: Math.ceil(card.scrollWidth),
-                            height: Math.ceil(card.scrollHeight)
-                        };
-
-                        const captured = await html2canvas(card, options);
-                        let finalCanvas = captured;
-
-                        if (captured.width > MAX_IMAGE_WIDTH) {
-                            const ratio = MAX_IMAGE_WIDTH / captured.width;
-                            const smallCanvas = document.createElement('canvas');
-                            smallCanvas.width = MAX_IMAGE_WIDTH;
-                            smallCanvas.height = Math.max(1, Math.floor(captured.height * ratio));
-
-                            const ctx = smallCanvas.getContext('2d');
+                        let finalCanvas = canvas;
+                        if (canvas.width > MAX_IMAGE_WIDTH) {
+                            const ratio = MAX_IMAGE_WIDTH / canvas.width;
+                            const scaledCanvas = document.createElement('canvas');
+                            scaledCanvas.width = MAX_IMAGE_WIDTH;
+                            scaledCanvas.height = Math.max(1, Math.floor(canvas.height * ratio));
+                            const ctx = scaledCanvas.getContext('2d');
                             ctx.imageSmoothingEnabled = true;
                             ctx.imageSmoothingQuality = 'high';
                             ctx.fillStyle = '#ffffff';
-                            ctx.fillRect(0, 0, smallCanvas.width, smallCanvas.height);
-                            ctx.drawImage(captured, 0, 0, smallCanvas.width, smallCanvas.height);
-                            finalCanvas = smallCanvas;
+                            ctx.fillRect(0, 0, scaledCanvas.width, scaledCanvas.height);
+                            ctx.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+                            finalCanvas = scaledCanvas;
                         }
 
-                        const dataUrl = finalCanvas.toDataURL('image/jpeg', 0.75);
+                        const dataUrl = finalCanvas.toDataURL('image/jpeg', 0.8);
                         chartImages.push({ title, image: dataUrl });
+                        continue;
                     } catch (err) {
-                        console.error('html2canvas capture failed for card:', err);
-                        const canvas = card.querySelector('canvas');
-                        if (canvas) {
-                            try {
-                                const fallbackCanvas = document.createElement('canvas');
-                                const fallbackWidth = Math.min(1000, canvas.width);
-                                const fallbackRatio = fallbackWidth / canvas.width;
-                                fallbackCanvas.width = fallbackWidth;
-                                fallbackCanvas.height = Math.max(1, Math.floor(canvas.height * fallbackRatio));
-                                const ctx = fallbackCanvas.getContext('2d');
-                                ctx.imageSmoothingEnabled = true;
-                                ctx.imageSmoothingQuality = 'high';
-                                ctx.fillStyle = '#ffffff';
-                                ctx.fillRect(0, 0, fallbackCanvas.width, fallbackCanvas.height);
-                                ctx.drawImage(canvas, 0, 0, fallbackCanvas.width, fallbackCanvas.height);
-                                const dataUrl = fallbackCanvas.toDataURL('image/jpeg', 0.75);
-                                const title = (card.querySelector('h3')?.textContent || 'Chart').trim();
-                                chartImages.push({ title, image: dataUrl });
-                            } catch (e) {
-                                console.error('Fallback canvas toDataURL failed:', e);
-                            }
-                        }
+                        console.error('Canvas capture failed for chart:', err);
                     }
                 }
 
-                // Restore charts section styles
-                if (wasHidden && chartsSection) {
-                    chartsSection.style.display = previousStyles.display || '';
-                    chartsSection.style.position = previousStyles.position || '';
-                    chartsSection.style.left = previousStyles.left || '';
-                    chartsSection.style.opacity = previousStyles.opacity || '';
-                    chartsSection.style.pointerEvents = previousStyles.pointerEvents || '';
+                try {
+                    const captured = await html2canvas(card, {
+                        scale: 1,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        allowTaint: false,
+                        logging: false
+                    });
+                    const dataUrl = captured.toDataURL('image/jpeg', 0.75);
+                    chartImages.push({ title, image: dataUrl });
+                } catch (err) {
+                    console.error('html2canvas fallback capture failed for card:', err);
                 }
-
-                resolve(chartImages);
-            });
+            }
+            resolve(chartImages);
         });
     },
 
