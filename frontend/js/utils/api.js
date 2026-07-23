@@ -99,7 +99,13 @@ const API = {
             });
 
             if (!response.ok) {
-                throw new Error('Chat failed');
+                const text = await response.text().catch(() => 'Unable to read response text');
+                console.error('Chat request failed:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    body: text
+                });
+                throw new Error(`Chat failed: ${response.status} ${response.statusText}`);
             }
 
             return response;
@@ -171,7 +177,13 @@ const API = {
             });
 
             if (!response.ok) {
-                throw new Error('Report generation failed');
+                const text = await response.text().catch(() => 'Unable to read response text');
+                console.error('Report request failed:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    body: text
+                });
+                throw new Error(`Report generation failed: ${response.status} ${response.statusText}`);
             }
 
             const data = await response.json();

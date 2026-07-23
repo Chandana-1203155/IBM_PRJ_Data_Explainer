@@ -9,15 +9,20 @@ class ChatController {
     async chat(req, res) {
         try {
             const { sessionId, question } = req.body;
+            console.log('Chat request received', { sessionId, question: question?.slice(0, 120) });
 
             // Get session data
             const session = sessionManager.getSession(sessionId);
             if (!session) {
+                console.warn('Chat request missing session:', sessionId);
                 return res.status(404).json({
                     success: false,
                     error: constants.ERRORS.SESSION_NOT_FOUND
                 });
             }
+
+            const currentProvider = require('../services/aiProviderService').getCurrentProvider();
+            console.log('Chat using provider:', currentProvider?.name);
 
             // Set up SSE
             res.setHeader('Content-Type', 'text/event-stream');

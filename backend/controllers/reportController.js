@@ -8,6 +8,10 @@ class ReportController {
     async generate(req, res) {
         try {
             const { sessionId, chartImages } = req.body;
+            console.log('Report request received', {
+                sessionId,
+                chartCount: Array.isArray(chartImages) ? chartImages.length : 0
+            });
 
             // Get session data
             const session = sessionManager.getSession(sessionId);
@@ -20,6 +24,7 @@ class ReportController {
 
             // Generate PDF report
             const report = await reportService.generateReport(session, chartImages || []);
+            console.log('Report generated:', report.filename);
 
             // Return a relative report URL so the browser uses the current page protocol
             const reportUrl = report.reportUrl;

@@ -373,6 +373,21 @@ const Upload = {
                     }
                 }
             }
+
+            if (buffer.startsWith('data: ')) {
+                const payload = buffer.slice(6);
+                if (payload) {
+                    try {
+                        const data = JSON.parse(payload);
+                        if (data.type === 'done' && data.data) {
+                            console.log('Insights streaming complete:', data.data);
+                            this.displayInsights(data.data);
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse final insights SSE buffer:', e, buffer);
+                    }
+                }
+            }
         } catch (error) {
             console.error('Insights streaming error:', error);
             this.displayInsightsFallback('Streaming interrupted. Please try again.');
@@ -481,6 +496,21 @@ const Upload = {
                         }
                     } catch (e) {
                         console.error('Error parsing SSE payload:', e);
+                    }
+                }
+            }
+
+            if (buffer.startsWith('data: ')) {
+                const payload = buffer.slice(6);
+                if (payload) {
+                    try {
+                        const data = JSON.parse(payload);
+                        if (data.type === 'done' && data.data) {
+                            console.log('Recommendations streaming complete:', data.data);
+                            this.displayRecommendations(data.data);
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse final recommendations SSE buffer:', e, buffer);
                     }
                 }
             }

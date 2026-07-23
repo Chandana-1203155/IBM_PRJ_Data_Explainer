@@ -221,22 +221,30 @@ const Chat = {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullResponse = '';
+        let buffer = '';
 
         try {
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
 
                 for (const line of lines) {
                     if (!line.startsWith('data: ')) continue;
 
-                    const payload = line.slice(6);
+                    const payload = line.slice(6).trim();
                     if (!payload) continue;
 
-                    const data = JSON.parse(payload);
+                    let data;
+                    try {
+                        data = JSON.parse(payload);
+                    } catch (parseError) {
+                        console.warn('Failed to parse SSE payload:', parseError, payload);
+                        continue;
+                    }
 
                     if (data.type === 'chunk') {
                         fullResponse += data.content || '';
@@ -249,6 +257,21 @@ const Chat = {
                             this.updateMessage(messageId, fullResponse, false);
                         }
                     }
+                }
+            }
+
+            if (buffer.startsWith('data: ')) {
+                const payload = buffer.slice(6).trim();
+                try {
+                    const data = JSON.parse(payload);
+                    if (data.type === 'done') {
+                        fullResponse = data.fullResponse || fullResponse;
+                        if (this.activeMessageId === messageId || !this.activeMessageId) {
+                            this.updateMessage(messageId, fullResponse, false);
+                        }
+                    }
+                } catch (parseError) {
+                    console.warn('Failed to parse final SSE buffer:', parseError, buffer);
                 }
             }
         } catch (error) {

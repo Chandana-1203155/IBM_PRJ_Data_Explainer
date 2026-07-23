@@ -67,27 +67,46 @@ class OllamaProvider extends BaseProvider {
                 timeout: options.timeout || 120000
             });
 
+            let buffer = '';
             response.data.on('data', (chunk) => {
-                const lines = chunk.toString().split('\n');
-                lines.forEach(line => {
-                    if (line.trim()) {
+                buffer += chunk.toString();
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+
+                    try {
+                        const data = JSON.parse(line);
+                        if (data.response) {
+                            onChunk(data.response);
+                        }
+                        if (data.done) {
+                            onChunk(null); // Signal end of stream
+                        }
+                    } catch (e) {
+                        // Skip invalid JSON until full line is buffered
+                    }
+                }
+            });
+
+            return new Promise((resolve, reject) => {
+                response.data.on('end', () => {
+                    if (buffer.trim()) {
                         try {
-                            const data = JSON.parse(line);
+                            const data = JSON.parse(buffer);
                             if (data.response) {
                                 onChunk(data.response);
                             }
                             if (data.done) {
-                                onChunk(null); // Signal end of stream
+                                onChunk(null);
                             }
                         } catch (e) {
-                            // Skip invalid JSON
+                            // Ignore incomplete final chunk
                         }
                     }
+                    resolve();
                 });
-            });
-
-            return new Promise((resolve, reject) => {
-                response.data.on('end', resolve);
                 response.data.on('error', reject);
             });
         } catch (error) {

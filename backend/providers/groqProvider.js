@@ -79,29 +79,51 @@ class GroqProvider extends BaseProvider {
                 timeout: options.timeout || 120000
             });
 
+            let buffer = '';
             response.data.on('data', (chunk) => {
-                const lines = chunk.toString().split('\n');
-                lines.forEach(line => {
-                    if (line.startsWith('data: ')) {
-                        const data = line.slice(6);
-                        if (data === '[DONE]') {
-                            onChunk(null); // Signal end of stream
-                            return;
-                        }
-                        try {
-                            const parsed = JSON.parse(data);
-                            if (parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) {
-                                onChunk(parsed.choices[0].delta.content);
-                            }
-                        } catch (e) {
-                            // Skip invalid JSON
-                        }
+                buffer += chunk.toString();
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (!line.startsWith('data: ')) continue;
+
+                    const data = line.slice(6).trim();
+                    if (!data) continue;
+
+                    if (data === '[DONE]') {
+                        onChunk(null); // Signal end of stream
+                        continue;
                     }
-                });
+
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) {
+                            onChunk(parsed.choices[0].delta.content);
+                        }
+                    } catch (e) {
+                        // Skip invalid JSON until full line is buffered
+                    }
+                }
             });
 
             return new Promise((resolve, reject) => {
-                response.data.on('end', resolve);
+                response.data.on('end', () => {
+                    if (buffer.startsWith('data: ')) {
+                        const data = buffer.slice(6).trim();
+                        if (data && data !== '[DONE]') {
+                            try {
+                                const parsed = JSON.parse(data);
+                                if (parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) {
+                                    onChunk(parsed.choices[0].delta.content);
+                                }
+                            } catch (e) {
+                                // Ignore incomplete final chunk
+                            }
+                        }
+                    }
+                    resolve();
+                });
                 response.data.on('error', reject);
             });
         } catch (error) {
