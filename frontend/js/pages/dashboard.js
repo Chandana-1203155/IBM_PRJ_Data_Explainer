@@ -81,10 +81,30 @@ const Dashboard = {
                             chartInstance.update('none');
 
                             const title = chartInstance?.options?.plugins?.title?.text || 'Chart';
-                            chartImages.push({
-                                title,
-                                image: canvas.toDataURL('image/png')
-                            });
+
+                            // Create a downscaled copy of the canvas to reduce payload size (mobile safety)
+                            try {
+                                const MAX_WIDTH = 1200; // keep images reasonably sized
+                                const scale = Math.min(1, MAX_WIDTH / canvas.width);
+                                const offscreen = document.createElement('canvas');
+                                offscreen.width = Math.max(1, Math.floor(canvas.width * scale));
+                                offscreen.height = Math.max(1, Math.floor(canvas.height * scale));
+                                const ctx = offscreen.getContext('2d');
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(0, 0, offscreen.width, offscreen.height);
+                                ctx.drawImage(canvas, 0, 0, offscreen.width, offscreen.height);
+
+                                // Use JPEG with quality to drastically reduce size on mobile
+                                const dataUrl = offscreen.toDataURL('image/jpeg', 0.7);
+
+                                chartImages.push({
+                                    title,
+                                    image: dataUrl
+                                });
+                            } catch (err) {
+                                console.error('Error creating downscaled image:', err);
+                                chartImages.push({ title, image: canvas.toDataURL('image/png') });
+                            }
                         } catch (error) {
                             console.error('Error capturing chart image:', error);
                         }
