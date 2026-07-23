@@ -318,13 +318,11 @@ const ChartService = {
     },
 
     exportChartImages(maxWidth = 1000, quality = 0.8) {
-        const chartImages = [];
-
-        Object.entries(this.charts).forEach(([chartId, chart]) => {
-            if (!chart || !chart.canvas) return;
+        return Object.entries(this.charts).reduce((result, [chartId, chart]) => {
+            if (!chart || !chart.canvas) return result;
 
             const title = chart.options?.plugins?.title?.text || chartId || 'Chart';
-            let dataUrl = null;
+            let dataUrl;
 
             try {
                 if (typeof chart.toBase64Image === 'function') {
@@ -334,40 +332,16 @@ const ChartService = {
                 }
             } catch (error) {
                 console.warn(`Failed to export chart image for ${chartId}:`, error);
-                return;
+                return result;
             }
 
-            if (!dataUrl) return;
-
-            if (maxWidth && chart.canvas.width > maxWidth) {
-                const ratio = maxWidth / chart.canvas.width;
-                const scaledCanvas = document.createElement('canvas');
-                scaledCanvas.width = maxWidth;
-                scaledCanvas.height = Math.max(1, Math.floor(chart.canvas.height * ratio));
-                const ctx = scaledCanvas.getContext('2d');
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, scaledCanvas.width, scaledCanvas.height);
-                const image = new Image();
-                image.src = dataUrl;
-                chartImages.push({ title, image, dataUrl, ratio });
-            } else {
-                chartImages.push({ title, image: dataUrl });
+            if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
+                return result;
             }
-        });
 
-        return chartImages.map((item) => {
-            if (!item.dataUrl) return { title: item.title, image: item.image };
-            const canvas = document.createElement('canvas');
-            canvas.width = item.image.width;
-            canvas.height = item.image.height;
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(item.image, 0, 0, canvas.width, canvas.height);
-            return { title: item.title, image: canvas.toDataURL('image/jpeg', quality) };
-        });
+            result.push({ title, image: dataUrl });
+            return result;
+        }, []);
     },
 
     async waitForAllChartsRendered(timeoutMs = 5000) {
