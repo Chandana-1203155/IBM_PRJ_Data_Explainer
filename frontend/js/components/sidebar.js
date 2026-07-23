@@ -114,7 +114,51 @@ const Sidebar = {
     }
 };
 
-// Initialize sidebar when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    Sidebar.init();
+// Robust initialization: call init immediately if DOM is ready, otherwise wait
+function ensureSidebarInit() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                console.log('Sidebar: DOMContentLoaded event — initializing');
+                Sidebar.init();
+            } catch (e) {
+                console.error('Sidebar.init error:', e);
+            }
+        });
+    } else {
+        try {
+            console.log('Sidebar: document already ready — initializing');
+            Sidebar.init();
+        } catch (e) {
+            console.error('Sidebar.init error:', e);
+        }
+    }
+}
+
+// Event delegation fallback so clicks toggle sidebar even if listeners weren't attached
+document.addEventListener('click', (e) => {
+    try {
+        const menuToggle = e.target.closest && e.target.closest('.menu-toggle');
+        const navToggle = e.target.closest && e.target.closest('.nav-toggle');
+        const sidebarToggle = e.target.closest && e.target.closest('.sidebar-toggle');
+        const sidebar = document.querySelector('.sidebar');
+
+        if ((menuToggle || navToggle) && sidebar) {
+            e.stopPropagation();
+            console.log('Sidebar (delegated) toggle clicked');
+            sidebar.classList.toggle('open');
+            return;
+        }
+
+        if (sidebarToggle && sidebar) {
+            e.stopPropagation();
+            console.log('Sidebar (delegated) close clicked');
+            sidebar.classList.remove('open');
+            return;
+        }
+    } catch (err) {
+        // ignore delegation errors
+    }
 });
+
+ensureSidebarInit();
