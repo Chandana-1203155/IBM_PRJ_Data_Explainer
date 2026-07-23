@@ -72,7 +72,8 @@ class GroqProvider extends BaseProvider {
             }, {
                 headers: {
                     'Authorization': `Bearer ${this.apiKey}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/event-stream'
                 },
                 responseType: 'stream',
                 timeout: options.timeout || 120000

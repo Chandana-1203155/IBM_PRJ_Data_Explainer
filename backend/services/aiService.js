@@ -43,24 +43,40 @@ class AIService {
         // Build prompt with history
         const prompt = this.buildChatPrompt(session, question, history);
         
+        // Add user message to history
+        chatHistoryManager.addMessage(session.sessionId, 'user', question);
+
+        let fullResponse = '';
+        let streamedAny = false;
+
         try {
-            // Add user message to history
-            chatHistoryManager.addMessage(session.sessionId, 'user', question);
-            
-            // Stream AI response
-            let fullResponse = '';
             await this.providerService.streamResponse(prompt, (chunk) => {
                 if (chunk) {
+                    streamedAny = true;
                     fullResponse += chunk;
                     onChunk(chunk);
                 } else {
-                    // Stream ended, add AI response to history
                     chatHistoryManager.addMessage(session.sessionId, 'assistant', fullResponse);
                 }
             });
         } catch (error) {
-            console.error('AI chat error:', error);
-            throw error;
+            console.error('AI chat streaming failed, falling back to non-streamed response:', error);
+
+            if (!streamedAny) {
+                try {
+                    const result = await this.providerService.generateResponse(prompt);
+                    fullResponse = result?.response || String(result);
+                    if (fullResponse) {
+                        onChunk(fullResponse);
+                    }
+                    chatHistoryManager.addMessage(session.sessionId, 'assistant', fullResponse);
+                } catch (fallbackError) {
+                    console.error('Fallback chat generation also failed:', fallbackError);
+                    throw fallbackError;
+                }
+            } else {
+                throw error;
+            }
         }
     }
 

@@ -78,16 +78,15 @@ const Dashboard = {
             ChartService.refreshAllCharts();
 
             window.requestAnimationFrame(async () => {
-                // Wait for ChartService to report that charts have pixels drawn
+                // Wait for ChartService to report that charts have rendered and stabilized
                 try {
                     await ChartService.waitForAllChartsRendered(5000);
                 } catch (err) {
                     console.warn('waitForAllChartsRendered failed or timed out:', err);
                 }
 
-                // Capture each chart card using html2canvas to preserve layout and ensure high-res capture
                 const chartCards = document.querySelectorAll('#charts-container .chart-card');
-                const scale = Math.max(2, Math.ceil(window.devicePixelRatio || 1));
+                const MAX_IMAGE_WIDTH = 1000;
 
                 for (const card of chartCards) {
                     try {
@@ -97,12 +96,12 @@ const Dashboard = {
                         const titleEl = card.querySelector('.chart-card-header h3') || card.querySelector('h3');
                         const title = titleEl ? titleEl.textContent.trim() : 'Chart';
 
-                        // Ensure the card is rendered and measurable
                         card.style.opacity = '1';
 
-                        // html2canvas options: high-res, allow cross-origin images, white background
+                        const elementWidth = card.scrollWidth || card.offsetWidth;
+                        const captureScale = Math.min(2, MAX_IMAGE_WIDTH / Math.max(1, elementWidth));
                         const options = {
-                            scale,
+                            scale: captureScale,
                             useCORS: true,
                             backgroundColor: '#ffffff',
                             allowTaint: false,
@@ -111,20 +110,43 @@ const Dashboard = {
                             height: Math.ceil(card.scrollHeight)
                         };
 
-                        // Capture full card (including offscreen content size)
                         const captured = await html2canvas(card, options);
+                        let finalCanvas = captured;
 
-                        // Convert to JPEG to reduce payload size while keeping quality
-                        const dataUrl = captured.toDataURL('image/jpeg', 0.9);
+                        if (captured.width > MAX_IMAGE_WIDTH) {
+                            const ratio = MAX_IMAGE_WIDTH / captured.width;
+                            const smallCanvas = document.createElement('canvas');
+                            smallCanvas.width = MAX_IMAGE_WIDTH;
+                            smallCanvas.height = Math.max(1, Math.floor(captured.height * ratio));
 
+                            const ctx = smallCanvas.getContext('2d');
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, smallCanvas.width, smallCanvas.height);
+                            ctx.drawImage(captured, 0, 0, smallCanvas.width, smallCanvas.height);
+                            finalCanvas = smallCanvas;
+                        }
+
+                        const dataUrl = finalCanvas.toDataURL('image/jpeg', 0.75);
                         chartImages.push({ title, image: dataUrl });
                     } catch (err) {
                         console.error('html2canvas capture failed for card:', err);
-                        // fallback to any canvas inside card
                         const canvas = card.querySelector('canvas');
                         if (canvas) {
                             try {
-                                const dataUrl = canvas.toDataURL('image/png');
+                                const fallbackCanvas = document.createElement('canvas');
+                                const fallbackWidth = Math.min(1000, canvas.width);
+                                const fallbackRatio = fallbackWidth / canvas.width;
+                                fallbackCanvas.width = fallbackWidth;
+                                fallbackCanvas.height = Math.max(1, Math.floor(canvas.height * fallbackRatio));
+                                const ctx = fallbackCanvas.getContext('2d');
+                                ctx.imageSmoothingEnabled = true;
+                                ctx.imageSmoothingQuality = 'high';
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillRect(0, 0, fallbackCanvas.width, fallbackCanvas.height);
+                                ctx.drawImage(canvas, 0, 0, fallbackCanvas.width, fallbackCanvas.height);
+                                const dataUrl = fallbackCanvas.toDataURL('image/jpeg', 0.75);
                                 const title = (card.querySelector('h3')?.textContent || 'Chart').trim();
                                 chartImages.push({ title, image: dataUrl });
                             } catch (e) {
