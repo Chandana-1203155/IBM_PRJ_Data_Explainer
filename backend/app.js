@@ -51,6 +51,13 @@ app.use('/api', routes);
 const reportDir = path.resolve(env.reportDir);
 app.use('/reports', express.static(reportDir));
 
+// Serve frontend static assets and SPA entry point
+const frontendDir = path.resolve(__dirname, '../frontend');
+app.use(express.static(frontendDir));
+app.get(/^(?!\/api|\/reports).*/, (req, res) => {
+    res.sendFile(path.join(frontendDir, 'index.html'));
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({
