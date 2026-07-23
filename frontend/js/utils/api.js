@@ -1,7 +1,13 @@
 // API Communication Utility - AI Data Explainer+
 
 const API = {
-    baseURL: 'http://localhost:3000/api',
+    get baseURL() {
+        const localHosts = ['localhost', '127.0.0.1', '::1'];
+        if (localHosts.includes(window.location.hostname)) {
+            return 'http://localhost:3000/api';
+        }
+        return '/api';
+    },
 
     async upload(file) {
         const formData = new FormData();
