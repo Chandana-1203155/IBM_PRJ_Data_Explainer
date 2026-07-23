@@ -77,60 +77,73 @@ const Dashboard = {
 
             ChartService.refreshAllCharts();
 
-            window.requestAnimationFrame(() => {
-                // Give charts more time to render on slower mobile devices
-                window.setTimeout(() => {
-                    canvases.forEach(canvas => {
-                        try {
-                            const chartInstance = ChartService.charts[canvas.id];
-                            if (!chartInstance) {
-                                return;
-                            }
+            window.requestAnimationFrame(async () => {
+                // Wait for ChartService to report that charts have pixels drawn
+                try {
+                    await ChartService.waitForAllChartsRendered(5000);
+                } catch (err) {
+                    console.warn('waitForAllChartsRendered failed or timed out:', err);
+                }
 
-                            chartInstance.resize();
-                            chartInstance.update('none');
+                // Capture each chart card using html2canvas to preserve layout and ensure high-res capture
+                const chartCards = document.querySelectorAll('#charts-container .chart-card');
+                const scale = Math.max(2, Math.ceil(window.devicePixelRatio || 1));
 
-                            const title = chartInstance?.options?.plugins?.title?.text || 'Chart';
+                for (const card of chartCards) {
+                    try {
+                        const style = window.getComputedStyle(card);
+                        if (style.display === 'none' || style.visibility === 'hidden') continue;
 
-                            // Create a downscaled copy of the canvas to reduce payload size (mobile safety)
+                        const titleEl = card.querySelector('.chart-card-header h3') || card.querySelector('h3');
+                        const title = titleEl ? titleEl.textContent.trim() : 'Chart';
+
+                        // Ensure the card is rendered and measurable
+                        card.style.opacity = '1';
+
+                        // html2canvas options: high-res, allow cross-origin images, white background
+                        const options = {
+                            scale,
+                            useCORS: true,
+                            backgroundColor: '#ffffff',
+                            allowTaint: false,
+                            logging: false,
+                            width: Math.ceil(card.scrollWidth),
+                            height: Math.ceil(card.scrollHeight)
+                        };
+
+                        // Capture full card (including offscreen content size)
+                        const captured = await html2canvas(card, options);
+
+                        // Convert to JPEG to reduce payload size while keeping quality
+                        const dataUrl = captured.toDataURL('image/jpeg', 0.9);
+
+                        chartImages.push({ title, image: dataUrl });
+                    } catch (err) {
+                        console.error('html2canvas capture failed for card:', err);
+                        // fallback to any canvas inside card
+                        const canvas = card.querySelector('canvas');
+                        if (canvas) {
                             try {
-                                const MAX_WIDTH = 1200; // keep images reasonably sized
-                                const scale = Math.min(1, MAX_WIDTH / canvas.width);
-                                const offscreen = document.createElement('canvas');
-                                offscreen.width = Math.max(1, Math.floor(canvas.width * scale));
-                                offscreen.height = Math.max(1, Math.floor(canvas.height * scale));
-                                const ctx = offscreen.getContext('2d');
-                                ctx.fillStyle = '#ffffff';
-                                ctx.fillRect(0, 0, offscreen.width, offscreen.height);
-                                ctx.drawImage(canvas, 0, 0, offscreen.width, offscreen.height);
-
-                                // Use JPEG with quality to drastically reduce size on mobile
-                                const dataUrl = offscreen.toDataURL('image/jpeg', 0.7);
-
-                                chartImages.push({
-                                    title,
-                                    image: dataUrl
-                                });
-                            } catch (err) {
-                                console.error('Error creating downscaled image:', err);
-                                chartImages.push({ title, image: canvas.toDataURL('image/png') });
+                                const dataUrl = canvas.toDataURL('image/png');
+                                const title = (card.querySelector('h3')?.textContent || 'Chart').trim();
+                                chartImages.push({ title, image: dataUrl });
+                            } catch (e) {
+                                console.error('Fallback canvas toDataURL failed:', e);
                             }
-                        } catch (error) {
-                            console.error('Error capturing chart image:', error);
                         }
-                    });
-
-                    // Restore charts section styles
-                    if (wasHidden && chartsSection) {
-                        chartsSection.style.display = previousStyles.display || '';
-                        chartsSection.style.position = previousStyles.position || '';
-                        chartsSection.style.left = previousStyles.left || '';
-                        chartsSection.style.opacity = previousStyles.opacity || '';
-                        chartsSection.style.pointerEvents = previousStyles.pointerEvents || '';
                     }
+                }
 
-                    resolve(chartImages);
-                }, 300);
+                // Restore charts section styles
+                if (wasHidden && chartsSection) {
+                    chartsSection.style.display = previousStyles.display || '';
+                    chartsSection.style.position = previousStyles.position || '';
+                    chartsSection.style.left = previousStyles.left || '';
+                    chartsSection.style.opacity = previousStyles.opacity || '';
+                    chartsSection.style.pointerEvents = previousStyles.pointerEvents || '';
+                }
+
+                resolve(chartImages);
             });
         });
     },

@@ -317,6 +317,44 @@ const ChartService = {
         });
     },
 
+    async waitForAllChartsRendered(timeoutMs = 5000) {
+        const start = Date.now();
+
+        const chartIds = Object.keys(this.charts);
+        if (chartIds.length === 0) return;
+
+        const check = () => {
+            for (const id of chartIds) {
+                try {
+                    const canvas = document.getElementById(id);
+                    if (!canvas) return false;
+                    if (canvas.width < 20 || canvas.height < 20) return false;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return false;
+                    // sample center pixel to ensure something has been drawn
+                    const x = Math.floor(canvas.width / 2);
+                    const y = Math.floor(canvas.height / 2);
+                    const data = ctx.getImageData(x, y, 1, 1).data;
+                    // alpha channel > 0 indicates drawing present
+                    if (!data || data[3] === 0) return false;
+                } catch (err) {
+                    // if getImageData throws (very unlikely for same-origin), treat as not ready
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        return new Promise(resolve => {
+            const tick = () => {
+                if (check()) return resolve();
+                if (Date.now() - start > timeoutMs) return resolve();
+                window.setTimeout(tick, 150);
+            };
+            tick();
+        });
+    },
+
     escapeHtml(text) {
         if (!text) return '';
         return String(text)
