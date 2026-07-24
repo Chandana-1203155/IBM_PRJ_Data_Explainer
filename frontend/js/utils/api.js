@@ -168,23 +168,6 @@ const API = {
 
     async generateReport(sessionId, chartImages = []) {
         try {
-            if (Array.isArray(chartImages) && chartImages.length > 0) {
-                const firstChart = chartImages[0];
-                console.debug('Submitting report request:', {
-                    sessionId,
-                    chartCount: chartImages.length,
-                    imageType: typeof firstChart?.image,
-                    imagePrefix: typeof firstChart?.image === 'string' ? firstChart.image.slice(0, 100) : '',
-                    imageLength: typeof firstChart?.image === 'string' ? firstChart.image.length : 0,
-                    mimeType: typeof firstChart?.image === 'string'
-                        ? (firstChart.image.match(/^data:([^;,]+)(;[^;,]+)*;base64,/i)?.[1] || 'unknown')
-                        : 'unknown',
-                    regexMatched: typeof firstChart?.image === 'string'
-                        ? /^data:([^;,]+)(;[^;,]+)*;base64,(.+)$/i.test(firstChart.image)
-                        : false
-                });
-            }
-
             const response = await fetch(`${this.baseURL}/report`, {
                 method: 'POST',
                 headers: {

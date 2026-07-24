@@ -8,20 +8,9 @@ class ReportController {
     async generate(req, res) {
         try {
             const { sessionId, chartImages } = req.body;
-            const firstChart = Array.isArray(chartImages) ? chartImages[0] : null;
             console.log('Report request received', {
                 sessionId,
-                chartCount: Array.isArray(chartImages) ? chartImages.length : 0,
-                firstChartTitle: firstChart?.title || null,
-                firstChartImageType: typeof firstChart?.image,
-                firstChartImagePrefix: typeof firstChart?.image === 'string' ? firstChart.image.slice(0, 100) : '',
-                firstChartImageLength: typeof firstChart?.image === 'string' ? firstChart.image.length : 0,
-                firstChartMimeType: typeof firstChart?.image === 'string'
-                    ? (firstChart.image.match(/^data:([^;,]+)(;[^;,]+)*;base64,/i)?.[1] || 'unknown')
-                    : 'unknown',
-                firstChartRegexMatched: typeof firstChart?.image === 'string'
-                    ? /^data:([^;,]+)(;[^;,]+)*;base64,(.+)$/i.test(firstChart.image)
-                    : false
+                chartCount: Array.isArray(chartImages) ? chartImages.length : 0
             });
 
             // Get session data

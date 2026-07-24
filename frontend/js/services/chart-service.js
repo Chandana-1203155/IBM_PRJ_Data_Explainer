@@ -358,16 +358,6 @@ const ChartService = {
                 return;
             }
 
-            console.debug('Chart export payload:', {
-                chartId,
-                title,
-                imageType: typeof dataUrl,
-                imagePrefix: dataUrl.slice(0, 100),
-                imageLength: dataUrl.length,
-                mimeType: dataUrl.match(/^data:([^;,]+)(;[^;,]+)*;base64,/i)?.[1] || 'unknown',
-                regexMatched: /^data:([^;,]+)(;[^;,]+)*;base64,(.+)$/i.test(dataUrl)
-            });
-
             images.push({ title, image: dataUrl });
         });
 

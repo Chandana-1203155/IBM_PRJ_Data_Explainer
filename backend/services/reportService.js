@@ -51,10 +51,8 @@ class ReportService {
             page = pdfDoc.addPage([this.pageWidth, this.pageHeight]);
             page = await this.addRecommendations(page, pdfDoc, session, font, boldFont);
 
-            if (Array.isArray(chartImages) && chartImages.length > 0) {
-                page = pdfDoc.addPage([this.pageWidth, this.pageHeight]);
-                page = await this.addCharts(page, pdfDoc, session, chartImages, font, boldFont);
-            }
+            // Charts are intentionally omitted from PDF report generation.
+            // This change only affects report generation and does not alter chart rendering elsewhere.
 
             page = pdfDoc.addPage([this.pageWidth, this.pageHeight]);
             page = await this.addConclusion(page, pdfDoc, session, font, boldFont);
@@ -958,9 +956,7 @@ class ReportService {
 
         console.log('Embedding chart images into PDF:', chartImages.length);
         chartImages.forEach((item, idx) => {
-            const imageValue = typeof item?.image === 'string' ? item.image : '';
-            const imageType = typeof item?.image;
-            console.log(`Chart[${idx}] title=${item?.title} type=${imageType} prefix=${imageValue.slice(0, 100)} length=${imageValue.length} mimeType=${imageValue.match(/^data:([^;,]+)(;[^;,]+)*;base64,/i)?.[1] || 'unknown'} regexMatched=${/^data:([^;,]+)(;[^;,]+)*;base64,(.+)$/i.test(imageValue)}`);
+            console.log(`Chart[${idx}] title=${item?.title} type=${typeof item?.image} prefix=${String(item?.image).slice(0, 40)} length=${String(item?.image).length}`);
         });
 
         for (let index = 0; index < chartImages.length; index++) {
@@ -1131,25 +1127,13 @@ class ReportService {
     }
 
     async embedChartImage(pdfDoc, imageData) {
-        const dataUrl = String(imageData || '').trim();
-        const preview = dataUrl.slice(0, 100);
-        const mimeType = dataUrl.match(/^data:([^;,]+)(;[^;,]+)*;base64,/i)?.[1] || 'unknown';
-        const regexMatched = /^data:([^;,]+)(;[^;,]+)*;base64,(.+)$/i.test(dataUrl);
-
-        console.log('[embedChartImage] pre-parse debug:', {
-            imageType: typeof imageData,
-            preview,
-            totalLength: dataUrl.length,
-            mimeType,
-            regexMatched
-        });
-
-        const match = dataUrl.match(/^data:([^;,]+)(;[^;,]+)*;base64,(.+)$/i);
+        const dataUrl = String(imageData || '');
+        const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9+.\-]+)(;charset=[^;]+)?;base64,(.+)$/);
         if (!match) {
             throw new Error('Unsupported chart image format');
         }
 
-        const parsedMimeType = match[1].toLowerCase();
+        const mimeType = match[1];
         const base64 = match[3];
         if (!base64 || base64.length < 100) {
             throw new Error('Chart image base64 payload is empty or too short');
@@ -1160,21 +1144,21 @@ class ReportService {
             throw new Error('Failed to decode chart image data');
         }
 
-        if (parsedMimeType.includes('png')) {
+        if (mimeType.includes('png')) {
             if (buffer.length < 1000 || !buffer.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]))) {
                 throw new Error('Invalid PNG image data');
             }
             return await pdfDoc.embedPng(buffer);
         }
 
-        if (parsedMimeType.includes('jpeg') || parsedMimeType.includes('jpg')) {
+        if (mimeType.includes('jpeg') || mimeType.includes('jpg')) {
             if (buffer.length < 1000 || buffer[0] !== 0xFF || buffer[1] !== 0xD8) {
                 throw new Error('Invalid JPEG image data');
             }
             return await pdfDoc.embedJpg(buffer);
         }
 
-        throw new Error(`Unsupported embedded image type: ${parsedMimeType}`);
+        throw new Error(`Unsupported embedded image type: ${mimeType}`);
     }
 
     drawTable(page, pdfDoc, headers, rows, colWidths, x, y, font, boldFont, options = {}) {
